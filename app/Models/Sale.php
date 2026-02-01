@@ -2,24 +2,38 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class Sale extends Model
 {
-    use HasFactory;
+    protected $guarded = [];
 
-    protected $guarded = []; // Allow mass assignment
-
-    // Relationship: A Sale has many Items
-    public function items()
+    // Relationship
+    public function branch()
     {
-        return $this->hasMany(SaleItem::class);
+        return $this->belongsTo(Branch::class);
     }
 
-    // Relationship: A Sale belongs to a Cashier
-    public function user()
+    // Isolate Sales Data
+    protected static function booted()
     {
-        return $this->belongsTo(User::class);
+        static::addGlobalScope('branch_sales', function (Builder $builder) {
+            if (Auth::check()) {
+                $user = Auth::user();
+                if ($user->branch_id) {
+                    // Only show sales created by users in this branch
+                    $builder->whereHas('user', function($q) use ($user) {
+                        $q->where('branch_id', $user->branch_id);
+                    });
+                }
+            }
+        });
     }
+
+    public function user() { return $this->belongsTo(User::class); }
+    public function items() { return $this->hasMany(SaleItem::class); }
+
+
 }

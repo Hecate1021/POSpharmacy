@@ -1,258 +1,237 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="space-y-6" x-data="dashboardApp()">
+<div class="space-y-8 pb-10">
 
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
-            <p class="text-gray-500 text-sm">Welcome back, {{ auth()->user()->name }}</p>
-        </div>
-        <div class="text-sm font-medium text-gray-500 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100">
-            {{ now()->format('l, F j, Y') }}
+    <div class="relative">
+        <div class="absolute -top-10 -right-10 w-64 h-64 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex flex-col md:flex-row justify-between items-end gap-4">
+            <div>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Overview</p>
+                <h1 class="text-4xl font-black text-slate-800 tracking-tight">
+                    {{ $selectedBranchName }} <span class="text-slate-300 font-light">Dashboard</span>
+                </h1>
+            </div>
+
+            <form method="GET" action="{{ route('admin.dashboard') }}" class="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-slate-100 relative z-10">
+                <div class="pl-3">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                </div>
+                <select name="branch_id" onchange="this.form.submit()" class="border-none text-sm font-bold text-slate-700 focus:ring-0 cursor-pointer bg-transparent py-2 pr-8">
+                    <option value="">View All Branches</option>
+                    @foreach($branches as $branch)
+                        <option value="{{ $branch->id }}" {{ $selectedBranchId == $branch->id ? 'selected' : '' }}>
+                            {{ $branch->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </form>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Today</p>
-                <h3 class="text-2xl font-black text-emerald-600 mt-1">₱{{ number_format($salesToday, 2) }}</h3>
-                <p class="text-xs text-gray-400 mt-1">{{ $transactionsToday }} transactions</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <div class="group bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-xl shadow-emerald-200 relative overflow-hidden transition-transform hover:-translate-y-1">
+            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path></svg>
             </div>
-            <div class="bg-emerald-50 p-3 rounded-xl text-emerald-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <p class="text-emerald-100 text-xs font-bold uppercase tracking-widest">Sales Today</p>
+            <h3 class="text-3xl font-black mt-2">₱{{ number_format($totalSalesToday, 2) }}</h3>
+            <p class="text-emerald-100 text-xs mt-2 font-medium bg-white/20 inline-block px-2 py-1 rounded-lg">{{ $totalTransactions }} Transactions</p>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-lg transition-all relative overflow-hidden group">
+            <div class="absolute right-0 top-0 p-6 text-slate-100 group-hover:text-emerald-50 transition-colors">
+                <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path></svg>
+            </div>
+            <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Revenue (This Month)</p>
+            <h3 class="text-3xl font-black text-slate-800 mt-2">₱{{ number_format($totalSalesMonth, 2) }}</h3>
+            <div class="mt-4 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-emerald-500 h-full rounded-full" style="width: 65%"></div>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">This Week</p>
-                <h3 class="text-2xl font-black text-gray-800 mt-1">₱{{ number_format($salesThisWeek, 2) }}</h3>
-                <p class="text-xs text-emerald-500 mt-1 font-bold">Mon - Sun</p>
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-lg transition-all relative overflow-hidden group">
+             <div class="absolute right-0 top-0 p-6 text-slate-100 group-hover:text-blue-50 transition-colors">
+                <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.496 2.132a1 1 0 00-.992 0l-7 4A1 1 0 003 8v7a1 1 0 100 2h14a1 1 0 100-2V8a1 1 0 00.504-1.868l-7-4zM6 9a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1zm3 1a1 1 0 012 0v3a1 1 0 11-2 0v-3zm5-1a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
             </div>
-            <div class="bg-indigo-50 p-3 rounded-xl text-indigo-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            </div>
+            <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Active Branches</p>
+            <h3 class="text-3xl font-black text-slate-800 mt-2">{{ $totalBranches }}</h3>
+            <a href="{{ route('branches.index') }}" class="text-blue-500 text-xs font-bold mt-2 inline-block hover:underline">Manage Locations &rarr;</a>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">This Month</p>
-                <h3 class="text-2xl font-black text-gray-800 mt-1">₱{{ number_format($salesThisMonth, 2) }}</h3>
-                <p class="text-xs text-blue-500 mt-1 font-bold">Accumulated</p>
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-lg transition-all relative overflow-hidden group">
+            <div class="absolute right-0 top-0 p-6 text-slate-100 group-hover:text-red-50 transition-colors">
+                 <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
             </div>
-            <div class="bg-blue-50 p-3 rounded-xl text-blue-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-            </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Low Stock</p>
-                <h3 class="text-2xl font-black {{ $lowStockItems->count() > 0 ? 'text-red-500' : 'text-gray-800' }} mt-1">{{ $lowStockItems->count() }}</h3>
-                <p class="text-xs text-gray-400 mt-1">Items Alert</p>
-            </div>
-            <div class="bg-red-50 p-3 rounded-xl text-red-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-            </div>
+            <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Low Stock Alerts</p>
+            <h3 class="text-3xl font-black {{ $lowStockItems->count() > 0 ? 'text-red-500' : 'text-slate-800' }} mt-2">{{ $lowStockItems->count() }}</h3>
+            <p class="text-slate-400 text-xs mt-1">Items below threshold</p>
         </div>
     </div>
 
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-gray-800">Sales Trend (Last 30 Days)</h3>
-        </div>
-        <div class="relative h-64 w-full">
-            <canvas id="salesChart"></canvas>
-        </div>
-    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-8">
 
-        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-5 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="font-bold text-gray-800">Recent Transactions</h3>
-                <span class="text-xs text-gray-400">Click row to view details</span>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="bg-gray-50 text-gray-500 font-medium">
-                        <tr>
-                            <th class="px-5 py-3">Invoice</th>
-                            <th class="px-5 py-3">Cashier</th>
-                            <th class="px-5 py-3">Amount</th>
-                            <th class="px-5 py-3">Time</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @foreach($recentSales as $sale)
-                        <tr @click="openModal({{ json_encode($sale) }})"
-                            class="hover:bg-emerald-50 transition-colors cursor-pointer group">
-                            <td class="px-5 py-3 font-medium text-emerald-600 group-hover:text-emerald-800">
-                                {{ $sale->invoice_no }}
-                            </td>
-                            <td class="px-5 py-3 text-gray-500">{{ $sale->user->name }}</td>
-                            <td class="px-5 py-3 font-bold text-gray-800">₱{{ number_format($sale->total_amount, 2) }}</td>
-                            <td class="px-5 py-3 text-gray-400">{{ $sale->created_at->diffForHumans() }}</td>
-                        </tr>
-                        @endforeach
-
-                        @if($recentSales->isEmpty())
-                        <tr><td colspan="4" class="px-5 py-8 text-center text-gray-400">No sales today.</td></tr>
-                        @endif
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-5 border-b border-gray-100">
-                <h3 class="font-bold text-red-600">Critical Stock</h3>
-            </div>
-            <div class="p-0">
-                @foreach($lowStockItems->take(5) as $item)
-                <div class="flex justify-between items-center p-4 border-b border-gray-50 last:border-0 hover:bg-red-50/50 transition-colors">
+            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                <div class="flex justify-between items-center mb-6">
                     <div>
-                        <div class="font-bold text-gray-800 text-sm">{{ $item->name }}</div>
-                        <div class="text-xs text-gray-400">Stock: <span class="text-red-600 font-bold">{{ $item->quantity }}</span></div>
+                        <h3 class="font-bold text-slate-800 text-lg">Revenue Trend</h3>
+                        <p class="text-xs text-slate-400">Showing data for: <span class="font-bold text-emerald-600">{{ $selectedBranchName }}</span></p>
                     </div>
-                    <a href="{{ route('inventory.index') }}" class="text-xs bg-white border border-gray-200 px-2 py-1 rounded text-gray-500 hover:text-emerald-600">Restock</a>
+                    <span class="bg-slate-50 text-xs font-bold text-slate-500 rounded-lg py-1 px-3">Last 7 Days</span>
                 </div>
-                @endforeach
-                @if($lowStockItems->isEmpty())
-                <div class="p-8 text-center text-gray-400 text-sm">All stocks good!</div>
-                @endif
-            </div>
-        </div>
-    </div>
-
-    <div x-show="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
-        <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" @click="showModal = false" x-transition.opacity></div>
-
-        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl relative z-10 overflow-hidden transform transition-all"
-             x-transition:enter="ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-4"
-             x-transition:enter-end="opacity-100 translate-y-0">
-
-            <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-800" x-text="selectedSale?.invoice_no"></h3>
-                    <p class="text-xs text-gray-500" x-text="formatDate(selectedSale?.created_at)"></p>
+                <div class="h-64 w-full">
+                    <canvas id="adminChart"></canvas>
                 </div>
-                <button @click="showModal = false" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
             </div>
 
-            <div class="p-0 max-h-[60vh] overflow-y-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="bg-gray-50 text-gray-500 border-b border-gray-100">
-                        <tr>
-                            <th class="px-6 py-2 font-medium">Item</th>
-                            <th class="px-6 py-2 font-medium text-center">Qty</th>
-                            <th class="px-6 py-2 font-medium text-right">Price</th>
-                            <th class="px-6 py-2 font-medium text-right">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-50">
-                        <template x-for="item in selectedSale?.items" :key="item.id">
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-slate-50 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-lg">Recent Transactions</h3>
+                        <p class="text-xs text-slate-400">Latest sales from <span class="font-bold text-emerald-600">{{ $selectedBranchName }}</span></p>
+                    </div>
+                    <a href="{{ route('reports.index') }}" class="text-emerald-600 text-xs font-bold hover:underline">View All Reports</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50">
                             <tr>
-                                <td class="px-6 py-3 text-gray-800 font-medium" x-text="item.product.name"></td>
-                                <td class="px-6 py-3 text-center text-gray-600" x-text="item.quantity"></td>
-                                <td class="px-6 py-3 text-right text-gray-600" x-text="'₱' + Number(item.price).toFixed(2)"></td>
-                                <td class="px-6 py-3 text-right font-bold text-gray-800" x-text="'₱' + (item.price * item.quantity).toFixed(2)"></td>
+                                <th class="p-4 text-xs font-bold text-slate-400 uppercase">Branch</th>
+                                <th class="p-4 text-xs font-bold text-slate-400 uppercase">Cashier</th>
+                                <th class="p-4 text-xs font-bold text-slate-400 uppercase text-right">Amount</th>
+                                <th class="p-4 text-xs font-bold text-slate-400 uppercase text-right">Time</th>
                             </tr>
-                        </template>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex justify-between items-center">
-                <span class="text-sm text-gray-500">Processed by: <span class="font-bold text-gray-700" x-text="selectedSale?.user?.name"></span></span>
-                <div class="text-right">
-                    <span class="block text-xs text-gray-500 uppercase font-bold">Total Paid</span>
-                    <span class="text-2xl font-black text-emerald-600" x-text="'₱' + Number(selectedSale?.total_amount).toFixed(2)"></span>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @forelse($recentSales as $sale)
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="p-4">
+                                    <span class="font-bold text-slate-700 text-sm">{{ $sale->branch->name ?? 'Unknown' }}</span>
+                                </td>
+                                <td class="p-4 text-sm text-slate-500">
+                                    {{ $sale->user->name ?? 'System' }}
+                                </td>
+                                <td class="p-4 text-right font-mono font-bold text-emerald-600">
+                                    ₱{{ number_format($sale->total_amount, 2) }}
+                                </td>
+                                <td class="p-4 text-right text-xs text-slate-400 font-bold">
+                                    {{ $sale->created_at->diffForHumans() }}
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="4" class="p-6 text-center text-slate-400 text-sm">No sales found.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-    </div>
 
+        <div class="space-y-8">
+
+            <div class="bg-slate-900 rounded-3xl p-6 text-white shadow-xl shadow-slate-300">
+                <h3 class="font-bold text-lg mb-1">Leaderboard</h3>
+                <p class="text-slate-400 text-xs mb-6">Top performing branches today</p>
+
+                <div class="space-y-4">
+                    @forelse($topBranches as $index => $branch)
+                    <div class="flex items-center gap-4 group">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm
+                            {{ $index == 0 ? 'bg-yellow-400 text-yellow-900' :
+                              ($index == 1 ? 'bg-slate-300 text-slate-800' :
+                              ($index == 2 ? 'bg-orange-400 text-orange-900' : 'bg-slate-800 text-slate-400')) }}">
+                            {{ $index + 1 }}
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-sm">{{ $branch->name }}</h4>
+                            <div class="w-full bg-slate-800 h-1 rounded-full mt-1.5 overflow-hidden">
+                                @php
+                                    $maxSales = $topBranches->first()->today_sales;
+                                    $percent = $maxSales > 0 ? ($branch->today_sales / $maxSales) * 100 : 0;
+                                @endphp
+                                <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: {{ $percent }}%"></div>
+                            </div>
+                        </div>
+                        <span class="font-mono text-sm font-bold text-emerald-400">₱{{ number_format($branch->today_sales, 0) }}</span>
+                    </div>
+                    @empty
+                    <p class="text-slate-500 text-sm">No sales data yet.</p>
+                    @endforelse
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+                <h3 class="font-bold text-slate-800 text-lg mb-4">Critical Stock</h3>
+                <div class="space-y-3">
+                    @forelse($lowStockItems as $item)
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-red-50 border border-red-100">
+                        <div>
+                            <h4 class="font-bold text-slate-700 text-sm">{{ $item->name }}</h4>
+                            <p class="text-[10px] text-slate-500 uppercase font-bold">{{ $item->branch->name }}</p>
+                        </div>
+                        <div class="text-center">
+                            <span class="block text-xl font-black text-red-500 leading-none">{{ $item->quantity }}</span>
+                            <span class="text-[9px] text-red-400 font-bold uppercase">Left</span>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="text-center py-6">
+                        <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <p class="text-sm font-bold text-slate-600">Inventory Healthy</p>
+                    </div>
+                    @endforelse
+                </div>
+                <a href="{{ route('inventory.index') }}" class="block w-full text-center mt-4 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors">View Full Inventory</a>
+            </div>
+
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Alpine Component for Modal Logic
-    function dashboardApp() {
-        return {
-            showModal: false,
-            selectedSale: null,
+    const ctx = document.getElementById('adminChart').getContext('2d');
 
-            openModal(sale) {
-                this.selectedSale = sale;
-                this.showModal = true;
-            },
+    // Gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+    gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
 
-            formatDate(dateString) {
-                if(!dateString) return '';
-                const date = new Date(dateString);
-                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: @json($chartLabels),
+            datasets: [{
+                label: 'Revenue',
+                data: @json($chartData),
+                borderColor: '#10b981',
+                backgroundColor: gradient,
+                borderWidth: 3,
+                tension: 0.4,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#10b981',
+                pointRadius: 4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { borderDash: [5, 5] },
+                    ticks: { callback: function(value) { return '₱' + value; } }
+                },
+                x: { grid: { display: false } }
             }
         }
-    }
-
-    // Chart.js Logic
-    document.addEventListener('DOMContentLoaded', function() {
-        const ctx = document.getElementById('salesChart').getContext('2d');
-
-        // Gradient for the chart line
-        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)'); // Emerald-500
-        gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
-
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: @json($labels), // Passed from Controller
-                datasets: [{
-                    label: 'Daily Sales (₱)',
-                    data: @json($data), // Passed from Controller
-                    borderColor: '#10b981', // Emerald-500
-                    backgroundColor: gradient,
-                    borderWidth: 2,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#10b981',
-                    pointRadius: 4,
-                    fill: true,
-                    tension: 0.4 // Smooth curves
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#064e3b',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        padding: 10,
-                        cornerRadius: 8,
-                        displayColors: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { borderDash: [2, 4], color: '#e5e7eb' },
-                        ticks: { callback: function(value) { return '₱' + value; } }
-                    },
-                    x: {
-                        grid: { display: false }
-                    }
-                }
-            }
-        });
     });
 </script>
 @endsection

@@ -76,4 +76,17 @@ class PosController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+
+    // In App\Http\Controllers\PosController.php
+
+public function getHistory()
+{
+    $sales = Sale::where('user_id', auth()->id())
+        ->with(['items.product']) // Load items for reprint details
+        ->latest()
+        ->take(50) // Limit to last 50 transactions
+        ->get();
+
+    return response()->json($sales);
+}
 }

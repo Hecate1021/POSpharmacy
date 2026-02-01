@@ -6,20 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
-        $table->string('username')->unique(); // Add this
-        $table->string('email')->unique(); // Keep email just in case, or make nullable
-        $table->string('password');
-        $table->tinyInteger('role')->default(0); // 1 = Admin, 0 = Sales
-        $table->rememberToken();
-        $table->timestamps();
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('username')->unique()->nullable(); // Made nullable to be safe
+            $table->string('password');
+
+            // FIXED: Changed to string to match our 'admin'/'cashier' logic
+            $table->string('role')->default('cashier');
+
+            $table->rememberToken();
+            $table->timestamps();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -38,9 +38,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');

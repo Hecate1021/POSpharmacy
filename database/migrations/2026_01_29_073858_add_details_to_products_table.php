@@ -1,0 +1,32 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up()
+{
+    Schema::table('products', function (Blueprint $table) {
+        // Default alert level is 10, but admin can change it per product
+        $table->integer('low_stock_threshold')->default(10)->after('quantity');
+
+        // Category for sales velocity
+        $table->string('category')->nullable()->after('name');
+    });
+}
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('products', function (Blueprint $table) {
+            //
+        });
+    }
+};

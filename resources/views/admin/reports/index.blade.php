@@ -1,176 +1,184 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="space-y-6" x-data="reportApp()">
+<div x-data="reportApp()" class="space-y-8 pb-20">
 
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">Sales Report</h1>
-            <p class="text-sm text-gray-500">Review your financial performance</p>
+    <form method="GET" action="{{ route('reports.index') }}">
+        <div class="relative mb-8">
+            <div class="absolute -top-10 -right-10 w-64 h-64 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex flex-col md:flex-row justify-between items-end gap-4 relative z-10">
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Financial Analysis</p>
+                    <h1 class="text-4xl font-black text-slate-800 tracking-tight">
+                        {{ $selectedBranchName }} <span class="text-slate-300 font-light">Reports</span>
+                    </h1>
+                </div>
+
+                <div class="flex gap-2">
+                    @if(auth()->user()->role === 'admin')
+                    <div class="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100 flex items-center">
+                        <div class="pl-3 pr-2 text-slate-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        </div>
+                        <select name="branch_id" onchange="this.form.submit()" class="border-none text-sm font-bold text-slate-700 focus:ring-0 cursor-pointer bg-transparent py-2 pr-8 rounded-xl hover:bg-slate-50 transition-colors">
+                            <option value="">All Branches</option>
+                            @foreach($branches as $branch)
+                                <option value="{{ $branch->id }}" {{ $selectedBranchId == $branch->id ? 'selected' : '' }}>
+                                    {{ $branch->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+                </div>
+            </div>
         </div>
 
-        <form method="GET" action="{{ route('reports.index') }}" class="flex flex-col sm:flex-row gap-2 bg-white p-2 rounded-xl shadow-sm border border-gray-200">
-            <div class="flex items-center gap-2 px-2">
-                <span class="text-xs font-bold text-gray-500 uppercase">From</span>
-                <input type="date" name="start_date" value="{{ $startDate }}"
-                    class="border-none p-0 text-sm font-semibold text-gray-800 focus:ring-0 cursor-pointer">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+            <div class="lg:col-span-1 bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm h-full flex flex-col justify-center gap-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">From Date</label>
+                    <input type="date" name="start_date" value="{{ $startDate->format('Y-m-d') }}" onchange="this.form.submit()" class="w-full bg-slate-50 border-slate-200 rounded-xl px-4 py-2 font-bold text-slate-700 text-sm">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">To Date</label>
+                    <input type="date" name="end_date" value="{{ $endDate->format('Y-m-d') }}" onchange="this.form.submit()" class="w-full bg-slate-50 border-slate-200 rounded-xl px-4 py-2 font-bold text-slate-700 text-sm">
+                </div>
             </div>
-            <div class="w-px bg-gray-200 hidden sm:block"></div>
-            <div class="flex items-center gap-2 px-2">
-                <span class="text-xs font-bold text-gray-500 uppercase">To</span>
-                <input type="date" name="end_date" value="{{ $endDate }}"
-                    class="border-none p-0 text-sm font-semibold text-gray-800 focus:ring-0 cursor-pointer">
-            </div>
-            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
-                Filter
-            </button>
-        </form>
-    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg shadow-emerald-200">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-emerald-100 text-xs font-bold uppercase tracking-wider">Total Revenue</p>
+            <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-[2rem] p-6 text-white shadow-xl shadow-emerald-200 relative overflow-hidden group">
+                    <p class="text-emerald-100 text-xs font-bold uppercase tracking-widest">Total Revenue</p>
                     <h3 class="text-3xl font-black mt-1">₱{{ number_format($totalRevenue, 2) }}</h3>
                 </div>
-                <div class="bg-white/20 p-2 rounded-lg">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div class="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm relative">
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Transactions</p>
+                    <h3 class="text-3xl font-black text-slate-800 mt-1">{{ $totalTransactions }}</h3>
+                </div>
+                <div class="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm relative">
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Avg. Ticket</p>
+                    <h3 class="text-3xl font-black text-slate-800 mt-1">₱{{ number_format($averageTicket, 2) }}</h3>
                 </div>
             </div>
-            <p class="text-emerald-100 text-sm mt-4 opacity-80">Period: {{ \Carbon\Carbon::parse($startDate)->format('M d') }} - {{ \Carbon\Carbon::parse($endDate)->format('M d') }}</p>
         </div>
+    </form>
 
-        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Transactions</p>
-                    <h3 class="text-3xl font-black text-gray-800 mt-1">{{ $totalTransactions }}</h3>
-                </div>
-                <div class="bg-blue-50 p-2 rounded-lg text-blue-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                </div>
-            </div>
-            <p class="text-gray-400 text-sm mt-4">Total invoices generated</p>
-        </div>
-
-        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Avg. Ticket</p>
-                    <h3 class="text-3xl font-black text-gray-800 mt-1">₱{{ number_format($averageTicket, 2) }}</h3>
-                </div>
-                <div class="bg-orange-50 p-2 rounded-lg text-orange-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                </div>
-            </div>
-            <p class="text-gray-400 text-sm mt-4">Average value per sale</p>
-        </div>
-    </div>
-
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-            <h3 class="font-bold text-gray-800">Transaction Details</h3>
-            <button onclick="window.print()" class="text-sm flex items-center gap-1 text-gray-500 hover:text-gray-800 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                Print Report
-            </button>
-        </div>
+    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-                <thead class="bg-gray-50 text-gray-500 font-bold border-b border-gray-200">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-50/50 border-b border-slate-100">
                     <tr>
-                        <th class="px-6 py-4">Invoice #</th>
-                        <th class="px-6 py-4">Date & Time</th>
-                        <th class="px-6 py-4">Cashier</th>
-                        <th class="px-6 py-4 text-right">Total Amount</th>
+                        <th class="p-5 text-xs font-bold text-slate-400 uppercase tracking-wider pl-8">Order ID</th>
+                        <th class="p-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Date & Time</th>
+                        <th class="p-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Branch</th>
+                        <th class="p-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Cashier</th>
+                        <th class="p-5 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Total</th>
+                        <th class="p-5 text-xs font-bold text-slate-400 uppercase tracking-wider text-right pr-8">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody class="divide-y divide-slate-50">
                     @forelse($sales as $sale)
-                    <tr @click="openModal({{ json_encode($sale) }})"
-                        class="hover:bg-emerald-50 transition-colors cursor-pointer group">
-                        <td class="px-6 py-4 font-mono font-medium text-emerald-600 group-hover:text-emerald-800">{{ $sale->invoice_no }}</td>
-                        <td class="px-6 py-4 text-gray-600">
-                            <span class="block font-bold text-gray-800">{{ $sale->created_at->format('M d, Y') }}</span>
-                            <span class="text-xs">{{ $sale->created_at->format('h:i A') }}</span>
+                    <tr class="hover:bg-slate-50/80 transition-colors group">
+                        <td class="p-5 pl-8">
+                            <span class="font-mono font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg text-xs">#{{ $sale->id }}</span>
                         </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 text-xs font-medium text-gray-600">
-                                {{ $sale->user->name }}
+                        <td class="p-5">
+                            <div class="font-bold text-slate-700 text-sm">{{ $sale->created_at->format('M d, Y') }}</div>
+                            <div class="text-xs text-slate-400 font-bold">{{ $sale->created_at->format('h:i A') }}</div>
+                        </td>
+                        <td class="p-5">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-100 bg-white text-xs font-bold text-slate-600">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {{ $sale->branch->name ?? 'Unknown' }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-right font-black text-emerald-600">
-                            ₱{{ number_format($sale->total_amount, 2) }}
+                        <td class="p-5">
+                            <span class="text-sm font-bold text-slate-600">{{ $sale->user->name ?? 'System' }}</span>
+                        </td>
+                        <td class="p-5 text-right">
+                            <span class="font-mono font-black text-emerald-600 text-lg">₱{{ number_format($sale->total_amount, 2) }}</span>
+                        </td>
+                        <td class="p-5 text-right pr-8">
+                            <button @click="viewInvoice({{ $sale->id }})" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-emerald-600 transition-colors shadow-lg shadow-slate-200 hover:shadow-emerald-200">
+                                View Invoice
+                            </button>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="px-6 py-10 text-center text-gray-400">
-                            No transactions found for this period.
-                        </td>
+                        <td colspan="6" class="p-12 text-center text-slate-400">No transactions found.</td>
                     </tr>
                     @endforelse
                 </tbody>
-                @if($sales->isNotEmpty())
-                <tfoot class="bg-gray-50 border-t border-gray-200">
-                    <tr>
-                        <td colspan="3" class="px-6 py-4 text-right font-bold text-gray-600 uppercase">Total Period Revenue</td>
-                        <td class="px-6 py-4 text-right font-black text-2xl text-emerald-700">₱{{ number_format($totalRevenue, 2) }}</td>
-                    </tr>
-                </tfoot>
-                @endif
             </table>
         </div>
+        <div class="p-5 border-t border-slate-50 bg-white">{{ $sales->links() }}</div>
     </div>
 
-    <div x-show="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
-        <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" @click="showModal = false" x-transition.opacity></div>
+    <div x-show="showInvoiceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="showInvoiceModal = false" x-transition.opacity></div>
 
-        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl relative z-10 overflow-hidden transform transition-all"
-             x-transition:enter="ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-4"
-             x-transition:enter-end="opacity-100 translate-y-0">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]"
+             x-transition:enter="ease-out duration-300" x-transition:enter-start="translate-y-8 opacity-0" x-transition:enter-end="translate-y-0 opacity-100">
 
-            <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <div class="bg-slate-50 px-8 py-6 border-b border-slate-100 flex justify-between items-center">
                 <div>
-                    <h3 class="text-lg font-bold text-gray-800" x-text="selectedSale?.invoice_no"></h3>
-                    <p class="text-xs text-gray-500" x-text="formatDate(selectedSale?.created_at)"></p>
+                    <h3 class="text-xl font-black text-slate-800">Invoice Details</h3>
+                    <p class="text-xs text-slate-500 font-mono mt-1" x-text="'Order #' + (invoice.id || 'Loading...')"></p>
                 </div>
-                <button @click="showModal = false" class="text-gray-400 hover:text-gray-600">
+                <button @click="showInvoiceModal = false" class="text-slate-400 hover:text-slate-800">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
-            <div class="p-0 max-h-[60vh] overflow-y-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="bg-gray-50 text-gray-500 border-b border-gray-100">
+            <div class="p-8 overflow-y-auto flex-1 custom-scrollbar">
+
+                <div class="flex justify-between items-start mb-6 pb-6 border-b border-dashed border-slate-200">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Branch</p>
+                        <p class="font-bold text-slate-700" x-text="invoice.branch ? invoice.branch.name : 'Unknown'"></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs font-bold text-slate-400 uppercase">Date</p>
+                        <p class="font-bold text-slate-700" x-text="formatDate(invoice.created_at)"></p>
+                    </div>
+                </div>
+
+                <table class="w-full text-left mb-6">
+                    <thead>
                         <tr>
-                            <th class="px-6 py-2 font-medium">Item</th>
-                            <th class="px-6 py-2 font-medium text-center">Qty</th>
-                            <th class="px-6 py-2 font-medium text-right">Price</th>
-                            <th class="px-6 py-2 font-medium text-right">Total</th>
+                            <th class="pb-2 text-xs font-bold text-slate-400 uppercase">Item</th>
+                            <th class="pb-2 text-xs font-bold text-slate-400 uppercase text-center">Qty</th>
+                            <th class="pb-2 text-xs font-bold text-slate-400 uppercase text-right">Price</th>
+                            <th class="pb-2 text-xs font-bold text-slate-400 uppercase text-right">Total</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-50">
-                        <template x-for="item in selectedSale?.items" :key="item.id">
-                            <tr>
-                                <td class="px-6 py-3 text-gray-800 font-medium" x-text="item.product?.name || 'Deleted Item'"></td>
-                                <td class="px-6 py-3 text-center text-gray-600" x-text="item.quantity"></td>
-                                <td class="px-6 py-3 text-right text-gray-600" x-text="'₱' + Number(item.price).toFixed(2)"></td>
-                                <td class="px-6 py-3 text-right font-bold text-gray-800" x-text="'₱' + (item.price * item.quantity).toFixed(2)"></td>
+                    <tbody class="text-sm">
+                        <template x-for="item in invoice.items" :key="item.id">
+                            <tr class="border-b border-slate-50">
+                                <td class="py-3 font-bold text-slate-700" x-text="item.product ? item.product.name : 'Unknown Item'"></td>
+                                <td class="py-3 text-center text-slate-500" x-text="item.quantity"></td>
+                                <td class="py-3 text-right text-slate-500" x-text="'₱' + formatNumber(item.price)"></td>
+                                <td class="py-3 text-right font-bold text-slate-800" x-text="'₱' + formatNumber(item.quantity * item.price)"></td>
                             </tr>
                         </template>
                     </tbody>
                 </table>
+
+                <div class="flex justify-between items-center pt-2">
+                    <span class="text-lg font-bold text-slate-500">Total Amount</span>
+                    <span class="text-3xl font-black text-emerald-600" x-text="'₱' + formatNumber(invoice.total_amount)"></span>
+                </div>
             </div>
 
-            <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex justify-between items-center">
-                <span class="text-sm text-gray-500">Processed by: <span class="font-bold text-gray-700" x-text="selectedSale?.user?.name"></span></span>
-                <div class="text-right">
-                    <span class="block text-xs text-gray-500 uppercase font-bold">Total Paid</span>
-                    <span class="text-2xl font-black text-emerald-600" x-text="'₱' + Number(selectedSale?.total_amount).toFixed(2)"></span>
-                </div>
+            <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                <button type="button" @click="printInvoice()" class="px-6 py-3 rounded-xl font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    Print
+                </button>
+                <button type="button" @click="showInvoiceModal = false" class="px-6 py-3 rounded-xl font-bold bg-slate-900 text-white hover:bg-emerald-600 transition-colors">
+                    Close
+                </button>
             </div>
         </div>
     </div>
@@ -180,18 +188,35 @@
 <script>
     function reportApp() {
         return {
-            showModal: false,
-            selectedSale: null,
+            showInvoiceModal: false,
+            invoice: { items: [], total_amount: 0 },
 
-            openModal(sale) {
-                this.selectedSale = sale;
-                this.showModal = true;
+            async viewInvoice(id) {
+                // Reset and open modal immediately for responsiveness
+                this.invoice = { items: [], total_amount: 0, id: '...' };
+                this.showInvoiceModal = true;
+
+                try {
+                    let response = await fetch(`/admin/reports/${id}`);
+                    this.invoice = await response.json();
+                } catch (error) {
+                    alert('Error loading invoice details.');
+                    this.showInvoiceModal = false;
+                }
+            },
+
+            printInvoice() {
+                window.print(); // Simple browser print (can be enhanced with specific print styles)
+            },
+
+            formatNumber(num) {
+                return Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             },
 
             formatDate(dateString) {
                 if(!dateString) return '';
-                const date = new Date(dateString);
-                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                return new Date(dateString).toLocaleDateString('en-US', options);
             }
         }
     }

@@ -8,6 +8,48 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+<style>
+    #toast-container > .toast {
+        background-image: none !important; /* Remove default icons */
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+        border-radius: 0.75rem !important; /* Rounded-xl */
+        padding: 15px 20px 15px 50px !important; /* Adjust padding */
+        opacity: 1 !important;
+    }
+
+    /* Success: Emerald-600 */
+    #toast-container > .toast-success {
+        background-color: #059669 !important;
+        color: #ffffff !important;
+        position: relative;
+    }
+    /* Add custom checkmark icon for Success */
+    #toast-container > .toast-success::before {
+        content: "✓";
+        position: absolute;
+        left: 18px; top: 12px;
+        font-size: 18px; font-weight: bold;
+    }
+
+    /* Error: Red-500 */
+    #toast-container > .toast-error {
+        background-color: #ef4444 !important;
+        color: white !important;
+        position: relative;
+    }
+    #toast-container > .toast-error::before {
+        content: "✕";
+        position: absolute;
+        left: 20px; top: 12px;
+        font-size: 16px; font-weight: bold;
+    }
+
+    .toast-title { font-weight: 800 !important; font-size: 1rem; }
+    .toast-message { font-size: 0.875rem; }
+</style>
+
 <body class="bg-slate-50 font-sans antialiased" x-data="{ sidebarOpen: false, sidebarCompact: false }">
 
     <div class="flex items-center justify-between bg-white shadow-sm px-4 py-3 md:hidden z-20 relative">
@@ -53,15 +95,15 @@
 
             <nav class="flex-1 px-2 py-6 space-y-2 overflow-y-auto">
 
-                <a href="{{ route('admin.dashboard') }}"
-                    class="group flex items-center px-3 py-3 text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-emerald-800' : '' }}">
-                    <svg class="h-6 w-6 text-emerald-300 group-hover:text-white" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                    </svg>
-                    <span x-show="!sidebarCompact" class="ml-3 whitespace-nowrap">Dashboard</span>
-                </a>
+                <a href="{{ auth()->user()->role === 'admin' ? route('admin.dashboard') : route('branch.dashboard') }}"
+   class="group flex items-center px-3 py-3 text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors {{ request()->routeIs('admin.dashboard') || request()->routeIs('branch.dashboard') ? 'bg-emerald-800' : '' }}">
+
+    <svg class="h-6 w-6 text-emerald-300 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+    </svg>
+
+    <span x-show="!sidebarCompact" class="ml-3 whitespace-nowrap">Dashboard</span>
+</a>
 
                 <a href="{{ route('inventory.index') }}"
                     class="group flex items-center px-3 py-3 text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors {{ request()->routeIs('inventory.*') ? 'bg-emerald-800' : '' }}">
@@ -82,6 +124,25 @@
                     </svg>
                     <span x-show="!sidebarCompact" class="ml-3 whitespace-nowrap">Revenue Reports</span>
                 </a>
+                @if(auth()->user()->role === 'admin')
+                 <a href="{{ route('branches.index') }}"
+                    class="group flex items-center px-3 py-3 text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
+                    <svg class="h-6 w-6 text-emerald-300 group-hover:text-white" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span x-show="!sidebarCompact" class="ml-3 whitespace-nowrap">Manage Branches</span>
+                </a>
+                @endif
+                {{-- Branch Manager Links --}}
+@if(auth()->user()->role === 'branch_manager')
+
+    <a href="{{ route('branch.staff.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('branch.staff.*') ? 'bg-emerald-600 text-white' : 'text-white' }}">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        Manage Cashiers
+    </a>
+@endif
             </nav>
 
             <div class="p-4 border-t border-emerald-800 bg-emerald-950">
@@ -122,5 +183,46 @@
 
     </div>
 </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
+<script>
+    // Toastr Configuration
+   toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+
+        // CHANGE THIS LINE:
+        "positionClass": "toast-top-right",
+
+        "preventDuplicates": false,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "3000",
+        "extendedTimeOut": "1000",
+    };
+    // Listen for Laravel Session Flash Messages
+    @if(Session::has('success'))
+        toastr.success("{{ Session::get('success') }}", "Success");
+    @endif
+
+    @if(Session::has('error'))
+        toastr.error("{{ Session::get('error') }}", "Error");
+    @endif
+
+    @if(Session::has('info'))
+        toastr.info("{{ Session::get('info') }}", "Info");
+    @endif
+
+    @if(Session::has('warning'))
+        toastr.warning("{{ Session::get('warning') }}", "Warning");
+    @endif
+
+    // Also catch Validation Errors (optional but helpful)
+    @if($errors->any())
+        @foreach($errors->all() as $error)
+            toastr.error("{{ $error }}", "Validation Error");
+        @endforeach
+    @endif
+</script>
 </html>

@@ -17,11 +17,26 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $fillable = [
+   protected $fillable = [
         'name',
+        'username', // <--- YOU MUST ADD THIS LINE
         'email',
         'password',
-    ];
+        'role',
+        'branch_id',
+
+];
+
+public function branch()
+{
+    return $this->belongsTo(Branch::class);
+}
+
+// Helper to check if Global Admin
+public function isSuperAdmin()
+{
+    return is_null($this->branch_id) && $this->role === 'admin';
+}
 
     /**
      * The attributes that should be hidden for serialization.
