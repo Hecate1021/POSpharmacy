@@ -26,26 +26,27 @@ class InventoryController extends Controller
 
     // STEP 2: Show the Inventory for ONE specific branch
     public function showBranch(Branch $branch, Request $request)
-    {
-        if (Auth::user()->role !== 'admin' && Auth::user()->branch_id !== $branch->id) {
-            abort(403);
-        }
-
-        $query = $branch->products();
-
-        if ($request->search) {
-            // NEW: Search both Name AND Barcode
-            $query->where(function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('barcode', 'like', '%' . $request->search . '%');
-            });
-        }
-
-        // Keep pagination
-        $products = $query->latest()->paginate(10)->withQueryString(); // withQueryString keeps the search in the URL pages
-
-        return view('admin.inventory.manage', compact('branch', 'products'));
+{
+    if (Auth::user()->role !== 'admin' && Auth::user()->branch_id !== $branch->id) {
+        abort(403);
     }
+
+    $query = $branch->products();
+
+    if ($request->search) {
+        $query->where(function($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->search . '%')
+              ->orWhere('barcode', 'like', '%' . $request->search . '%');
+        });
+    }
+
+    // UPDATED: Order by Name (A-Z) and show 100 items per page
+    $products = $query->orderBy('name', 'asc')
+                      ->paginate(100)
+                      ->withQueryString();
+
+    return view('admin.inventory.manage', compact('branch', 'products'));
+}
 
     // STEP 3: Store Item (Branch ID is passed via hidden input)
     public function store(Request $request)
@@ -89,15 +90,23 @@ class InventoryController extends Controller
 
     // Add this to your InventoryController class
 
-    public function quickAdd(Request $request, Product $product)
-    {
-        $request->validate([
-            'quantity_to_add' => 'required|integer|min:1',
-        ]);
+    public function quickAdd(Request $request, $id)
+{
+    // 1. Validate that the input is a positive number
+    $request->validate([
+        'quantity_to_add' => 'required|integer|min:1'
+    ]);
 
-        // Increment the stock
-        $product->increment('quantity', $request->quantity_to_add);
+    // 2. Find the product by ID
+    $product = Product::findOrFail($id);
 
-        return back()->with('success', "Added {$request->quantity_to_add} units to {$product->name}. New total: {$product->quantity}");
-    }
+    // 3. Perform the math: Current Database Stock + User Input
+    $product->quantity = $product->quantity + $request->quantity_to_add;
+
+    // 4. CRITICAL: Save the change to the database
+    $product->save();
+
+    // 5. Return to the page with a success message for your Toastr
+    return redirect()->back()->with('success', "Added {$request->quantity_to_add} units to {$product->name}. New total: {$product->quantity}");
+}
 }

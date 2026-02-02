@@ -33,20 +33,20 @@ class UserSeeder extends Seeder
 
         // Manager for Branch A
         User::create([
-            'name' => 'Manager Main',
+            'name' => 'Isulan Branch',
             'username' => 'isulan_branch',
             'email' => 'manager_main@pharmaco.local',
-            'password' => Hash::make('isulan123'),
+            'password' => Hash::make('branch123'),
             'role' => 'branch_manager',
             'branch_id' => $branchA->id,
         ]);
 
         // Cashier for Branch A
         User::create([
-            'name' => 'Cashier ',
+            'name' => 'Isulan Cashier',
             'username' => 'isulan_cashier',
             'email' => 'cashier_main@pharmaco.local',
-            'password' => Hash::make('cashier123'),
+            'password' => Hash::make('sales123'),
             'role' => 'cashier',
             'branch_id' => $branchA->id,
         ]);
@@ -61,20 +61,20 @@ class UserSeeder extends Seeder
 
         // Manager for Branch B
         User::create([
-            'name' => 'Manager North',
+            'name' => 'Koroanadal Branch',
             'username' => 'koronadal_branch',
             'email' => 'manager_north@pharmaco.local',
-            'password' => Hash::make('koronadal123'),
+            'password' => Hash::make('branch123'),
             'role' => 'branch_manager',
             'branch_id' => $branchB->id,
         ]);
 
         // Cashier for Branch B
         User::create([
-            'name' => 'Cashier North',
+            'name' => 'Koronadal Cashier',
             'username' => 'koronadal_cashier',
-            'email' => 'cashier_north@pharmaco.local',
-            'password' => Hash::make('cashier123'),
+            'email' => 'koronadal@pharmaco.local',
+            'password' => Hash::make('sales123'),
             'role' => 'cashier',
             'branch_id' => $branchB->id,
         ]);

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\DailyRegister; // <--- THIS IS LIKELY MISSING
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,52 +14,121 @@ class PosController extends Controller
 {
     public function index()
     {
-        // Only load available products to keep frontend light
-        $products = Product::where('quantity', '>', 0)->select('id', 'name', 'price', 'quantity')->get();
-        return view('pos.terminal', compact('products'));
+        // Check if the logged-in user has already opened the register TODAY
+        $register = DailyRegister::where('user_id', Auth::id())
+            ->whereDate('created_at', date('Y-m-d'))
+            ->first();
+
+        $products = Product::where('quantity', '>', 0)
+        ->select('id', 'name', 'price', 'quantity', 'barcode') // ADDED 'barcode'
+        ->get();
+
+    return view('pos.terminal', [
+        'products' => $products,
+        'register_open' => $register ? true : false,
+        'starting_cash' => $register ? $register->opening_amount : 0
+    ]);
+    }
+
+    // New method to handle Opening the Register
+    public function openRegister(Request $request)
+    {
+        $request->validate(['amount' => 'required|numeric|min:0']);
+
+        DailyRegister::create([
+            'user_id' => Auth::id(),
+            'opening_amount' => $request->amount,
+            'status' => 'open',
+            'created_at' => now(),
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function getHistory(Request $request)
+    {
+       $date = $request->input('date', date('Y-m-d'));
+    $userId = Auth::id();
+
+        // 1. Get Sales for the selected date
+        $sales = Sale::where('user_id', $userId)
+            ->whereDate('created_at', $date)
+            ->with('items.product')
+            ->latest()
+            ->get();
+
+        // 2. Get Starting Cash for the selected date
+        $register = DailyRegister::where('user_id', $userId)
+            ->whereDate('created_at', $date)
+            ->first();
+
+        $startingCash = $register ? $register->opening_amount : 0;
+
+        // 3. Calculate Totals
+        $totalSales = $sales->sum('total_amount');
+        $cashOnHand = $startingCash + $totalSales;
+
+       return response()->json([
+        'debug_user_id' => $userId, // Add this to see who is logged in
+        'transactions' => $sales,
+        'summary' => [
+            'starting_cash' => (float)$startingCash,
+            'total_sales' => (float)$totalSales,
+            'cash_on_hand' => (float)$cashOnHand
+        ]
+    ]);
     }
 
     public function store(Request $request)
     {
         $cart = $request->input('cart');
 
+        // Get discount from frontend (0.10, 0.20, etc). Default to 0.
+        $discountRate = $request->input('discount_rate', 0);
+
         if (empty($cart)) {
             return response()->json(['success' => false, 'message' => 'Cart is empty']);
         }
 
-        // Use Database Transaction to ensure data integrity
         DB::beginTransaction();
 
         try {
-            // 1. Calculate Total (Don't trust frontend total)
-            $totalAmount = 0;
+            // 1. Calculate Subtotal (Sum of Price * Qty)
+            $subTotal = 0;
             foreach ($cart as $item) {
-                $totalAmount += ($item['price'] * $item['qty']);
+                $subTotal += ($item['price'] * $item['qty']);
             }
 
-            // 2. Create Sale Record
+            // 2. Calculate Discount Amount
+            $discountAmount = $subTotal * $discountRate;
+
+            // 3. Final Total
+            $finalTotal = $subTotal - $discountAmount;
+
+            // 4. Create Sale Record
             $sale = Sale::create([
-                'invoice_no' => 'INV-' . time(), // Simple Unique ID
+                'invoice_no' => 'INV-' . time(),
                 'user_id' => Auth::id(),
-                'total_amount' => $totalAmount,
-                'amount_paid' => $totalAmount, // Assuming exact cash for now
-                'change' => 0,
+                'subtotal' => $subTotal,          // New Column
+                'discount_rate' => $discountRate, // New Column
+                'discount_amount' => $discountAmount, // New Column
+                'total_amount' => $finalTotal,
+                'amount_paid' => $request->input('cash_received', $finalTotal),
+                'change' => $request->input('change_amount', 0),
                 'payment_method' => 'Cash'
             ]);
 
-            // 3. Process Items & Deduct Stock
+            // 5. Process Items & Deduct Stock
             foreach ($cart as $item) {
-                $product = Product::lockForUpdate()->find($item['id']); // Lock row to prevent race conditions
+                $product = Product::lockForUpdate()->find($item['id']);
 
                 if (!$product || $product->quantity < $item['qty']) {
                     throw new \Exception("Stock error for item: " . $item['name']);
                 }
 
-                // Deduct Stock
                 $product->quantity -= $item['qty'];
                 $product->save();
 
-                // Save Sale Item
                 SaleItem::create([
                     'sale_id' => $sale->id,
                     'product_id' => $product->id,
@@ -69,24 +139,15 @@ class PosController extends Controller
             }
 
             DB::commit();
-            return response()->json(['success' => true]);
+
+            // Reload relationships for the receipt response
+            $sale->load('items.product');
+
+            return response()->json(['success' => true, 'sale' => $sale]);
 
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
-
-    // In App\Http\Controllers\PosController.php
-
-public function getHistory()
-{
-    $sales = Sale::where('user_id', auth()->id())
-        ->with(['items.product']) // Load items for reprint details
-        ->latest()
-        ->take(50) // Limit to last 50 transactions
-        ->get();
-
-    return response()->json($sales);
-}
 }
